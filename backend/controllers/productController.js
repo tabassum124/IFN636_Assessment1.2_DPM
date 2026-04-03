@@ -19,9 +19,9 @@ const createProduct = async (req, res) => {
       owner: req.user._id,
     });
 
-    res.status(201).json(product);
+    return res.status(201).json(product);
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    return res.status(500).json({ message: err.message });
   }
 };
 
@@ -34,6 +34,7 @@ const getProducts = async (req, res) => {
     if (search) {
       query.title = { $regex: search, $options: 'i' };
     }
+
     if (category) {
       query.category = category;
     }
@@ -42,23 +43,25 @@ const getProducts = async (req, res) => {
       .populate('owner', 'name email')
       .sort({ createdAt: -1 });
 
-    res.json(products);
+    return res.json(products);
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    return res.status(500).json({ message: err.message });
   }
 };
 
 // GET /api/products/:id
 const getProductById = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id).populate(
-      'owner',
-      'name email'
-    );
-    if (!product) return res.status(404).json({ message: 'Product not found' });
-    res.json(product);
+    const product = await Product.findById(req.params.id)
+      .populate('owner', 'name email');
+
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    return res.json(product);
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    return res.status(500).json({ message: err.message });
   }
 };
 
@@ -66,9 +69,12 @@ const getProductById = async (req, res) => {
 const updateProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
-    if (!product) return res.status(404).json({ message: 'Product not found' });
 
-    // Only owner or admin
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    // Only owner or admin can update
     if (
       product.owner.toString() !== req.user._id.toString() &&
       req.user.role !== 'admin'
@@ -76,6 +82,7 @@ const updateProduct = async (req, res) => {
       return res.status(403).json({ message: 'Not allowed' });
     }
 
+    // Update only provided fields
     const fields = ['title', 'description', 'price', 'category', 'images', 'location'];
     fields.forEach((field) => {
       if (req.body[field] !== undefined) {
@@ -84,9 +91,9 @@ const updateProduct = async (req, res) => {
     });
 
     const updated = await product.save();
-    res.json(updated);
+    return res.json(updated);
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    return res.status(500).json({ message: err.message });
   }
 };
 
@@ -94,8 +101,12 @@ const updateProduct = async (req, res) => {
 const deleteProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
-    if (!product) return res.status(404).json({ message: 'Product not found' });
 
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    // Only owner or admin can delete
     if (
       product.owner.toString() !== req.user._id.toString() &&
       req.user.role !== 'admin'
@@ -104,9 +115,9 @@ const deleteProduct = async (req, res) => {
     }
 
     await product.deleteOne();
-    res.json({ message: 'Product removed' });
+    return res.json({ message: 'Product removed' });
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    return res.status(500).json({ message: err.message });
   }
 };
 
