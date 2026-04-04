@@ -1,109 +1,75 @@
-
-# name: CI
-
-# on:
-#   push:
-#     branches:
-#       - main
-#   pull_request:
-#     branches:
-#       - main
-
-# jobs:
-#   build:
-#     runs-on: ubuntu-latest
-
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v2
-
-#       - name: Set up Node.js
-#         uses: actions/setup-node@v2
-#         with:
-#           node-version: '14'
-
-#       - name: Install dependencies
-#         run: npm install
-
-#       - name: Run tests
-#         run: npm test
-name: Backend CI
+name: Backend CI/CD
 
 on:
   push:
     branches:
-      - main  # Trigger CI on pushes to the main branch
-
+      - main
+  workflow_dispatch:
 
 jobs:
-  test:
-    name: Run Tests
+  test-build-deploy:
     runs-on: self-hosted
 
     strategy:
       matrix:
-        node-version: [22] # Test on multiple Node.js versions
+        node-version: [22]
 
-
-    environment: MONGO_URI
+    env:
+      MONGO_URI: ${{ secrets.MONGO_URI }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      PORT: ${{ secrets.PORT }}
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    # Set up Node.js
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
 
-    - name: Print Env Secret
+      - name: Stop PM2 services (if running)
+        run: |
+          pm2 stop all || echo "No PM2 processes to stop"
 
-      env:
-        MONGO_URI: ${{ secrets.MONGO_URI }}
-        JWT_SECRET: ${{ secrets.JWT_SECRET }}
-        PORT: ${{ secrets.PORT }}
-      run: | 
-        echo "Secret 1 is: $MONGO_URI"
-        echo "Secret 2 is: $JWT_SECRET"
-        echo "Secret 3 is: $PORT"
-      
-    - run: pm2 stop all
+      # ---------- BACKEND ----------
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: |
+          npm ci
 
-    # Install dependencies for backend
-    - name: Install Backend Dependencies
-      working-directory: ./backend
-      run: | 
-       npm install --global yarn
-       yarn --version
-       yarn install
-      
-    # Install dependencies for frontend
-    - name: Install Frontend Dependencies
-      working-directory: ./frontend
-      run: |
-        df -h
-        sudo rm -rf ./build
-        yarn install
-        yarn run build
+      - name: Run backend tests
+        working-directory: ./backend
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          PORT: ${{ secrets.PORT }}
+        run: |
+          npm test
 
+      # ---------- FRONTEND ----------
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: |
+          npm ci
 
-    # Run backend tests
-    - name: Run Backend Tests
-      env:
-        MONGO_URI: ${{ secrets.MONGO_URI }}
-        JWT_SECRET: ${{ secrets.JWT_SECRET }}
-        PORT: ${{ secrets.PORT }}
-      working-directory: ./backend
-      run: npm test
+      - name: Build frontend
+        working-directory: ./frontend
+        run: |
+          npm run build
 
+      # ---------- ENV FOR PRODUCTION ----------
+      - name: Create .env for backend (production)
+        working-directory: ./backend
+        run: |
+          rm -f .env
+          echo "${{ secrets.PROD }}" > .env
 
-    - run: npm ci
-    - run: | 
-        cd ./backend
-        touch .env
-        echo "${{ secrets.PROD }}" > .env
+      # ---------- RESTART SERVICES ----------
+      - name: Start PM2 services
+        run: |
+          pm2 start all || pm2 start ecosystem.config.js || echo "Start your app with pm2 manually first time"
 
-    - run: pm2 start all
-
-    - run: pm2 restart all
+      - name: Restart PM2 services
+        run: |
+          pm2 restart all

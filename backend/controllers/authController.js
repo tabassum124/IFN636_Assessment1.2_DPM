@@ -21,7 +21,7 @@ const registerUser = async (req, res) => {
         // Create user (password hashed in User model)
         const user = await User.create({ name, email, password });
 
-        res.status(201).json({
+        return res.status(201).json({
             id: user.id,
             name: user.name,
             email: user.email,

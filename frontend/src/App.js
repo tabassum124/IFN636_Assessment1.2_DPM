@@ -4,14 +4,13 @@ import Navbar from './components/Navbar';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
-import Tasks from './pages/Tasks';
 
 import ProductList from './pages/ProductList';
 import ProductDetail from './pages/ProductDetail';
 import ProductForm from './pages/ProductForm';
 
-import Messages from './pages/Messages';
-import Chat from './pages/Chat';
+import Messages from './pages/messages';
+import Chat from './pages/chat';
 
 import { useAuth } from './context/AuthContext';
 
@@ -49,15 +48,6 @@ function App() {
           element={
             <ProtectedRoute>
               <Profile />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/tasks"
-          element={
-            <ProtectedRoute>
-              <Tasks />
             </ProtectedRoute>
           }
         />

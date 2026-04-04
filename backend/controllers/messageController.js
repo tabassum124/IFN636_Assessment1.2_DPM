@@ -31,7 +31,7 @@ const createMessage = async (req, res) => {
       content,
     });
 
-    res.status(201).json(message);
+    return res.status(201).json(message);
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
