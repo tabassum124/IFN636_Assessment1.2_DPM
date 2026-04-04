@@ -8,9 +8,18 @@ export const AuthProvider = ({ children }) => {
   );
 
   const login = (data) => {
+    // Build user object based on backend response
+    const userData = {
+      id: data.id,
+      name: data.name,
+      email: data.email,
+      role: data.role || 'user',
+    };
+
     localStorage.setItem('token', data.token);
-    localStorage.setItem('user', JSON.stringify(data.user));
-    setUser(data.user);
+    localStorage.setItem('user', JSON.stringify(userData));
+
+    setUser(userData);
   };
 
   const logout = () => {

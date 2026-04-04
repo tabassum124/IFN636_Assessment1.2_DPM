@@ -10,9 +10,28 @@ const Messages = () => {
   useEffect(() => {
     axiosInstance
       .get('/messages')
-      .then((res) => setConversations(res.data))
+      .then((res) => {
+        const msgs = res.data;
+
+        // Group messages by the OTHER user
+        const convMap = {};
+
+        msgs.forEach((msg) => {
+          const other =
+            msg.sender._id === user.id ? msg.receiver : msg.sender;
+
+          if (!convMap[other._id]) {
+            convMap[other._id] = {
+              otherUser: other,
+              lastMessage: msg,
+            };
+          }
+        });
+
+        setConversations(Object.values(convMap));
+      })
       .catch(() => alert('Failed to load messages'));
-  }, []);
+  }, [user.id]);
 
   if (!user) {
     return <p className="p-6 text-center">Please log in to view your messages.</p>;
@@ -29,15 +48,15 @@ const Messages = () => {
       <div className="space-y-3">
         {conversations.map((conv) => (
           <Link
-            key={conv._id}
-            to={`/messages/${conv._id}`}
+            key={conv.otherUser._id}
+            to={`/messages/${conv.otherUser._id}`}
             className="block border p-4 rounded shadow hover:bg-gray-100"
           >
             <p className="font-semibold">
-              Chat with: {conv.otherUser?.name || 'Unknown User'}
+              Chat with: {conv.otherUser.name}
             </p>
             <p className="text-gray-600 text-sm">
-              Last message: {conv.lastMessage?.content || 'No messages yet'}
+              Last message: {conv.lastMessage.content}
             </p>
           </Link>
         ))}

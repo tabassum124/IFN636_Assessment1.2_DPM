@@ -34,7 +34,7 @@ const ProductDetails = () => {
   const deleteProduct = async () => {
     try {
       await axiosInstance.delete(`/products/${id}`);
-      navigate('/products');
+      navigate('/'); // FIXED
     } catch (err) {
       alert('Failed to delete product');
     }
@@ -42,7 +42,8 @@ const ProductDetails = () => {
 
   if (!product) return <p className="p-6">Loading...</p>;
 
-  const isOwner = user && product.owner && user._id === product.owner._id;
+  // FIXED: user.id instead of user._id
+  const isOwner = user && product.owner && user.id === product.owner._id;
 
   return (
     <div className="p-6 max-w-2xl mx-auto">

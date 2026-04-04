@@ -1,27 +1,4 @@
-// import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-// import Navbar from './components/Navbar';
-// import Login from './pages/Login';
-// import Register from './pages/Register';
-// import Profile from './pages/Profile';
-// import Tasks from './pages/Tasks';
-
-// function App() {
-//   return (
-//     <Router>
-//       <Navbar />
-//       <Routes>
-//         <Route path="/login" element={<Login />} />
-//         <Route path="/register" element={<Register />} />
-//         <Route path="/profile" element={<Profile />} />
-//         <Route path="/tasks" element={<Tasks />} />
-//       </Routes>
-//     </Router>
-//   );
-// }
-
-// export default App;
-
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 
 import Login from './pages/Login';
@@ -33,18 +10,20 @@ import ProductList from './pages/ProductList';
 import ProductDetail from './pages/ProductDetail';
 import ProductForm from './pages/ProductForm';
 
-import Messages from './pages/messages';
-import Chat from './pages/chat';
+import Messages from './pages/Messages';
+import Chat from './pages/Chat';
 
 import { useAuth } from './context/AuthContext';
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children }) => {
   const { user } = useAuth();
-  return user ? children : <Login />;
+  return user ? children : <Navigate to="/login" replace />;
 };
 
 function App() {
+  const { user } = useAuth();
+
   return (
     <Router>
       <Navbar />
@@ -54,8 +33,15 @@ function App() {
         <Route path="/" element={<ProductList />} />
         <Route path="/products/:id" element={<ProductDetail />} />
 
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        {/* Prevent logged-in users from accessing login/register */}
+        <Route
+          path="/login"
+          element={user ? <Navigate to="/" replace /> : <Login />}
+        />
+        <Route
+          path="/register"
+          element={user ? <Navigate to="/" replace /> : <Register />}
+        />
 
         {/* Protected Routes */}
         <Route
@@ -111,9 +97,13 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* Optional: 404 Page */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );
 }
 
 export default App;
+

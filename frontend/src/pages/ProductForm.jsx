@@ -29,6 +29,14 @@ const ProductForm = ({ mode }) => {
         .get(`/products/${id}`)
         .then((res) => {
           const p = res.data;
+
+          // Prevent editing someone else's product
+          if (p.owner?._id !== user.id) {
+            alert('You are not allowed to edit this product');
+            navigate('/');
+            return;
+          }
+
           setForm({
             title: p.title || '',
             description: p.description || '',
@@ -40,7 +48,7 @@ const ProductForm = ({ mode }) => {
         })
         .catch(() => alert('Failed to load product'));
     }
-  }, [mode, id]);
+  }, [mode, id, user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -58,7 +66,7 @@ const ProductForm = ({ mode }) => {
         await axiosInstance.put(`/products/${id}`, payload);
       }
 
-      navigate('/products');
+      navigate('/'); // FIXED
     } catch (err) {
       alert('Failed to save product');
     }
@@ -71,7 +79,6 @@ const ProductForm = ({ mode }) => {
           {mode === 'create' ? 'Create Product' : 'Edit Product'}
         </h1>
 
-        {/* Title */}
         <input
           placeholder="Title"
           value={form.title}
@@ -79,7 +86,6 @@ const ProductForm = ({ mode }) => {
           className="w-full mb-4 p-2 border rounded"
         />
 
-        {/* Description */}
         <textarea
           placeholder="Description"
           value={form.description}
@@ -88,7 +94,6 @@ const ProductForm = ({ mode }) => {
           rows="4"
         />
 
-        {/* Price */}
         <input
           type="number"
           placeholder="Price"
@@ -97,7 +102,6 @@ const ProductForm = ({ mode }) => {
           className="w-full mb-4 p-2 border rounded"
         />
 
-        {/* Category */}
         <input
           placeholder="Category"
           value={form.category}
@@ -105,7 +109,6 @@ const ProductForm = ({ mode }) => {
           className="w-full mb-4 p-2 border rounded"
         />
 
-        {/* Images */}
         <input
           placeholder="Image URLs (comma separated)"
           value={form.images}
@@ -113,7 +116,6 @@ const ProductForm = ({ mode }) => {
           className="w-full mb-4 p-2 border rounded"
         />
 
-        {/* Location */}
         <input
           placeholder="Location"
           value={form.location}
@@ -130,4 +132,3 @@ const ProductForm = ({ mode }) => {
 };
 
 export default ProductForm;
-

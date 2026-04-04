@@ -1,12 +1,18 @@
 const Product = require('../models/Product');
 
-// POST /api/products
+// CREATE PRODUCT — POST /api/products
 const createProduct = async (req, res) => {
   try {
     const { title, description, price, category, images, location } = req.body;
 
-    if (!title || !description || !price || !category) {
+    // Required fields validation
+    if (!title || !description || price === undefined || !category) {
       return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    // Price validation
+    if (price < 0) {
+      return res.status(400).json({ message: 'Price cannot be negative' });
     }
 
     const product = await Product.create({
@@ -25,7 +31,7 @@ const createProduct = async (req, res) => {
   }
 };
 
-// GET /api/products
+// GET ALL PRODUCTS — GET /api/products
 const getProducts = async (req, res) => {
   try {
     const { search, category } = req.query;
@@ -49,7 +55,7 @@ const getProducts = async (req, res) => {
   }
 };
 
-// GET /api/products/:id
+// GET SINGLE PRODUCT — GET /api/products/:id
 const getProductById = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id)
@@ -65,7 +71,7 @@ const getProductById = async (req, res) => {
   }
 };
 
-// PUT /api/products/:id
+// UPDATE PRODUCT — PUT /api/products/:id
 const updateProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -80,6 +86,19 @@ const updateProduct = async (req, res) => {
       req.user.role !== 'admin'
     ) {
       return res.status(403).json({ message: 'Not allowed' });
+    }
+
+    // Validate price if provided
+    if (req.body.price !== undefined && req.body.price < 0) {
+      return res.status(400).json({ message: 'Price cannot be negative' });
+    }
+
+    // Prevent empty title/description
+    if (req.body.title === '') {
+      return res.status(400).json({ message: 'Title cannot be empty' });
+    }
+    if (req.body.description === '') {
+      return res.status(400).json({ message: 'Description cannot be empty' });
     }
 
     // Update only provided fields
@@ -97,7 +116,7 @@ const updateProduct = async (req, res) => {
   }
 };
 
-// DELETE /api/products/:id
+// DELETE PRODUCT — DELETE /api/products/:id
 const deleteProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);

@@ -3,6 +3,8 @@ const mongoose = require("mongoose");
 
 // Set strictQuery explicitly to suppress the warning
 //mongoose.set('strictQuery', true);
+mongoose.set("strictQuery", false);
+
 
 const connectDB = async () => {
   try {

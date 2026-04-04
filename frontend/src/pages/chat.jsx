@@ -4,25 +4,23 @@ import axiosInstance from '../axiosConfig';
 import { useAuth } from '../context/AuthContext';
 
 const Chat = () => {
-  const { id } = useParams(); // conversation ID
+  const { id } = useParams(); // other user ID
   const { user } = useAuth();
+
   const [messages, setMessages] = useState([]);
-  const [otherUser, setOtherUser] = useState(null);
   const [content, setContent] = useState('');
   const bottomRef = useRef(null);
 
-  // Auto-scroll to bottom
   const scrollToBottom = () => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Load conversation messages
+  // Load messages between logged-in user and other user
   useEffect(() => {
     axiosInstance
-      .get(`/messages/${id}`)
+      .get(`/messages?userId=${id}`)
       .then((res) => {
-        setMessages(res.data.messages);
-        setOtherUser(res.data.otherUser);
+        setMessages(res.data);
         scrollToBottom();
       })
       .catch(() => alert('Failed to load chat'));
@@ -33,7 +31,8 @@ const Chat = () => {
     if (!content.trim()) return;
 
     try {
-      const res = await axiosInstance.post(`/messages/${id}`, {
+      const res = await axiosInstance.post(`/messages`, {
+        receiverId: id,
         content,
       });
 
@@ -51,17 +50,14 @@ const Chat = () => {
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">
-        Chat with {otherUser?.name || 'User'}
-      </h1>
+      <h1 className="text-2xl font-bold mb-4">Chat</h1>
 
-      {/* Messages */}
       <div className="border rounded p-4 h-96 overflow-y-auto bg-gray-50">
         {messages.map((msg) => (
           <div
             key={msg._id}
             className={`mb-3 p-2 rounded max-w-xs ${
-              msg.sender === user._id
+              msg.sender === user.id
                 ? 'bg-blue-600 text-white ml-auto'
                 : 'bg-gray-300 text-black'
             }`}
@@ -73,7 +69,6 @@ const Chat = () => {
         <div ref={bottomRef}></div>
       </div>
 
-      {/* Input */}
       <div className="mt-4 flex gap-2">
         <input
           className="border p-2 flex-1 rounded"
