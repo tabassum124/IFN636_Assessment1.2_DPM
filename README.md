@@ -20,30 +20,6 @@ Using EC2, PM2, Nginx, and GitHub Actions.
 Separation of concerns, modular code, reusable components.
 
 
-System Architechture: 
-                ┌──────────────────────────┐
-                │        Frontend          │
-                │      (React Build)       │
-                └────────────┬─────────────┘
-                             │
-                             ▼
-                    ┌────────────────┐
-                    │     Nginx      │
-                    │ Reverse Proxy  │
-                    └───────┬────────┘
-            ┌────────────────┴────────────────┐
-            ▼                                 ▼
-┌──────────────────────┐          ┌────────────────────────┐
-│  React Static Files  │          │   Node.js Backend API   │
-│  /frontend/build      │          │   /api/* routes         │
-└──────────────────────┘          └───────────┬────────────┘
-                                               │
-                                               ▼
-                                   ┌──────────────────────┐
-                                   │   MongoDB Atlas DB   │
-                                   └──────────────────────┘
-
-
 System Requirements
 Functional Requirements: 
 1. Users shall be able to register and log in.
