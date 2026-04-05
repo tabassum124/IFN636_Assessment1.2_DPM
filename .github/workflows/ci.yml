@@ -21,16 +21,16 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: Stop PM2 services (if running)
+      - name: Stop PM2 services
         run: |
-          pm2 stop all || echo "No PM2 processes to stop"
+          pm2 stop all || echo "No PM2 processes running"
 
       # ---------- BACKEND ----------
       - name: Install backend dependencies
@@ -68,7 +68,7 @@ jobs:
       # ---------- RESTART SERVICES ----------
       - name: Start PM2 services
         run: |
-          pm2 start all || pm2 start ecosystem.config.js || echo "Start your app with pm2 manually first time"
+          pm2 start all || echo "Start your app manually first time"
 
       - name: Restart PM2 services
         run: |
