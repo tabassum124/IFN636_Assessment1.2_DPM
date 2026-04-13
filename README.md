@@ -70,4 +70,4 @@ For the EC2 Server:
 7.Configure Nginx
 8.Test the Deployment.
                 
-
+Login credentials: Email: ena@gmail.com pass: 1234
